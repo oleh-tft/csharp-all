@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace csharp_all.Library
 {
-    internal interface IPeriodic
+    public interface IPeriodic
     {
         String GetPeriod(); // public abstract
     }

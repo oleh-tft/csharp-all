@@ -3,16 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace csharp_all.Library
 {
     public class Library
     {
+        [JsonInclude]
         private List<Literature> Funds { get; set; } = [];
 
         public Library()
+        {
+            
+        }
+
+        public void Init()
         {
             Funds.Add(new Book()
             {

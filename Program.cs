@@ -1,4 +1,6 @@
 ﻿using csharp_all.Exceptions;
+using csharp_all.Extensions;
+using csharp_all.Files;
 using csharp_all.Fraction;
 using csharp_all.Library;
 using csharp_all.Vectors;
@@ -10,7 +12,9 @@ Console.OutputEncoding = System.Text.Encoding.Unicode;
 //new FractionDemo().Run();
 try
 {
-    new ExceptionsDemo().Run();
+    //new ExceptionsDemo().Run();
+    //new FilesDemo().Run();
+    new ExtensionsDemo().Run();
 }
 catch (Exception ex)
 {
