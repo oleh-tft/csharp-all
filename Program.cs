@@ -1,4 +1,6 @@
-﻿using csharp_all.Exceptions;
+﻿using csharp_all.Events;
+using csharp_all.Events.Notifier;
+using csharp_all.Exceptions;
 using csharp_all.Extensions;
 using csharp_all.Files;
 using csharp_all.Fraction;
@@ -14,7 +16,9 @@ try
 {
     //new ExceptionsDemo().Run();
     //new FilesDemo().Run();
-    new ExtensionsDemo().Run();
+    //new ExtensionsDemo().Run();
+    //new EventsDemo().Run();
+    new NotifierDemo().Run();
 }
 catch (Exception ex)
 {

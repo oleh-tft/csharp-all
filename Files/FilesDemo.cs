@@ -13,39 +13,6 @@ namespace csharp_all.Files
     internal class FilesDemo
     {
 
-        public void Run()
-        {
-            Library.Library library = new();
-            library.Init();
-            var options = new JsonSerializerOptions
-            {
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
-                WriteIndented = true
-            };
-            String lib = JsonSerializer.Serialize(library, options);
-            Console.WriteLine(lib);
-            File.WriteAllText("library.json", lib);
-
-            Library.Library library2;
-            try
-            {
-                library2 = JsonSerializer.Deserialize<Library.Library>(lib)!;
-                            // ? throw new NullReferenceException();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return;
-            }
-            library2.PrintCatalog();
-            
-            Vectors.Vector v = new() { X = 10, Y = 20 };
-            String j = JsonSerializer.Serialize(v);
-            Console.WriteLine(j);
-            Vectors.Vector v2 = JsonSerializer.Deserialize<Vectors.Vector>(j);
-            Console.WriteLine(v2);
-        }
-
         public string GetTimesTranslation(int value)
         {
             int lastDigit = value.ToString().Last() - '0';
@@ -63,7 +30,7 @@ namespace csharp_all.Files
             return "разів";
         }
 
-        public void RunLog()
+        public void Run()
         {
             string logDir = Directory.GetCurrentDirectory() + "/logs";
             if (!Directory.Exists(logDir))
@@ -109,6 +76,31 @@ namespace csharp_all.Files
                     Console.WriteLine("Неможливо відкрити файл логування " + ex.Message);
                 }
             }
+            int fileIndex = 0;
+
+            FileInfo fileInfo = new FileInfo(logPath);
+
+            while (fileInfo.Exists && fileInfo.Length >= 512)
+            {
+                fileIndex++;
+                string newFileName = $"runlogs{fileIndex}.txt";
+                logPath = Path.Combine(logDir, newFileName);
+                fileInfo = new FileInfo(logPath);
+
+                if (!fileInfo.Exists)
+                {
+                    try
+                    {
+                        File.Create(logPath).Dispose();
+                        break;
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine("Неможливо створити новий файл логування " + ex.Message);
+                        return;
+                    }
+                }
+            }
             try
             {
                 File.AppendAllText(logPath, DateTime.Now.ToString() + "\n");
@@ -118,6 +110,39 @@ namespace csharp_all.Files
                 Console.WriteLine("Помилка логування " + ex.Message);
                 return;
             }
+        }
+
+        public void RunLib()
+        {
+            Library.Library library = new();
+            library.Init();
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
+                WriteIndented = true
+            };
+            String lib = JsonSerializer.Serialize(library, options);
+            Console.WriteLine(lib);
+            File.WriteAllText("library.json", lib);
+
+            Library.Library library2;
+            try
+            {
+                library2 = JsonSerializer.Deserialize<Library.Library>(lib)!;
+                // ? throw new NullReferenceException();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return;
+            }
+            library2.PrintCatalog();
+
+            Vectors.Vector v = new() { X = 10, Y = 20 };
+            String j = JsonSerializer.Serialize(v);
+            Console.WriteLine(j);
+            Vectors.Vector v2 = JsonSerializer.Deserialize<Vectors.Vector>(j);
+            Console.WriteLine(v2);
         }
 
         public void Run4()

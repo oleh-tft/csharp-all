@@ -34,6 +34,10 @@ namespace csharp_all.Extensions
                 Date = new DateOnly(1776, 1, 15)
             });
             Console.WriteLine(b.IsDaily() ? "Щоденна" : "Не щоденна");
+            DateTime dateTime = DateTime.Now;
+            Console.WriteLine($"Original: {dateTime}\t SQL: {dateTime.ToSqlFormat()}");
+            dateTime = new DateTime(2025, 1, 1);
+            Console.WriteLine($"Original: {dateTime}\t SQL: {dateTime.ToSqlFormat()}");
         }
     }
 
@@ -42,6 +46,14 @@ namespace csharp_all.Extensions
         public static bool IsDaily(this IPeriodic lit)
         {
             return lit.GetPeriod() == "День";
+        }
+    }
+
+    public static class DateExtension
+    {
+        public static String ToSqlFormat(this DateTime dateTime)
+        {
+            return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
     }
 }
