@@ -14,7 +14,7 @@ namespace csharp_all.Events.Notifier
     internal class GlobalState
     {
         private static GlobalState? _instance = null;
-        public static GlobalState Instance => _instance ??= new(0.0, "", "");
+        public static GlobalState Instance => _instance ??= new(0.0, "", "Home");
 
         public GlobalState(double price, String username, String activePage)
         {
