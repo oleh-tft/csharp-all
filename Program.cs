@@ -1,4 +1,7 @@
-﻿using csharp_all.Events;
+﻿using csharp_all.Collect;
+using csharp_all.Data;
+using csharp_all.Dict;
+using csharp_all.Events;
 using csharp_all.Events.Notifier;
 using csharp_all.Exceptions;
 using csharp_all.Extensions;
@@ -10,15 +13,19 @@ using System;
 using System.Reflection;
 
 Console.OutputEncoding = System.Text.Encoding.Unicode;
-//new VectorDemo().Run();
-//new FractionDemo().Run();
+Console.InputEncoding = System.Text.Encoding.Unicode;
 try
 {
+    //new VectorDemo().Run();
+    //new FractionDemo().Run();
     //new ExceptionsDemo().Run();
     //new FilesDemo().Run();
     //new ExtensionsDemo().Run();
     //new EventsDemo().Run();
-    new NotifierDemo().Run();
+    //new NotifierDemo().Run();
+    //new CollectionsDemo().Run();
+    //new DictDemo().Run();
+    new DataDemo().Run();
 }
 catch (Exception ex)
 {
