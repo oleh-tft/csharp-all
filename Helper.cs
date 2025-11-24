@@ -16,5 +16,14 @@ namespace csharp_all
             Console.WriteLine(text);
             Console.ForegroundColor = ConsoleColor.Gray;
         }
+
+        public static void SpecialOperator()
+        {
+            Array values = Enum.GetValues(typeof(ConsoleColor));
+            Random random = new();
+            Console.ForegroundColor = (ConsoleColor)values.GetValue(random.Next(values.Length - 1) + 1);
+            Console.WriteLine("============================");
+            Console.ForegroundColor = ConsoleColor.Gray;
+        }
     }
 }

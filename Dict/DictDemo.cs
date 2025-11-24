@@ -50,6 +50,9 @@ namespace csharp_all.Dict
                 new(){ Key = '2', Title = "Переклад слова з англійської до української", Action = En2Uk },
                 new(){ Key = '3', Title = "Додати переклад до словника", Action = AddWord },
                 new(){ Key = '4', Title = "Вивести весь словник", Action = PrintDictionary },
+                new(){ Key = '5', Title = "Змінити переклад", Action = EditTranslation },
+                new(){ Key = '6', Title = "Вилучити переклад за англ.", Action = RemoveTranslationEn },
+                new(){ Key = '7', Title = "Вилучити переклад за укр.", Action = RemoveTranslationUk },
                 new(){ Key = '0', Title = "Вихід з програми", Action = () => throw new Exception() },
             ];
         }
@@ -100,6 +103,10 @@ namespace csharp_all.Dict
 
         private void PrintDictionary()
         {
+            foreach (var item in dictionary)
+            {
+                Console.WriteLine("{0} -- {1}", item.Key, item.Value);
+            }
             // Pagination - пагінація - поділ на сторінки
             // Вивести весь словник по N елементів, перехід до наступного - довільна клавіша
             // окрім ESC - переривання виведення (на етапі тестування N = 2-3)
@@ -121,6 +128,76 @@ namespace csharp_all.Dict
                 Console.WriteLine("Виникла помилка: " + ex.Message);
             }
         }
+
+        private void EditTranslation()
+        {
+            Console.Write("Слово англійською: ");
+            String en = Console.ReadLine()!;
+            if (!dictionary.ContainsKey(en)) {
+                Console.WriteLine("Слово не знайдено");
+                return;
+            }
+            Console.WriteLine("Новий переклад українською: ");
+            String uk = Console.ReadLine()!;
+            try
+            {
+                dictionary.Remove(en);
+                dictionary.Add(en, uk);
+                Console.WriteLine("Додано успішно");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Виникла помилка: " + ex.Message);
+            }
+        }
+
+        private void RemoveTranslationEn()
+        {
+            Console.Write("Слово англійською: ");
+            String en = Console.ReadLine()!;
+            if (!dictionary.ContainsKey(en))
+            {
+                Console.WriteLine("Слово не знайдено");
+                return;
+            }
+            try
+            {
+                dictionary.Remove(en);
+                Console.WriteLine("Вилучено успішно");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Виникла помилка: " + ex.Message);
+            }
+        }
+
+        private void RemoveTranslationUk()
+        {
+            Console.Write("Слово українською: ");
+            String uk = Console.ReadLine()!;
+            if (!dictionary.ContainsValue(uk))
+            {
+                Console.WriteLine("Слово не знайдено");
+                return;
+            }
+            try
+            {
+                Dictionary<String, String> temp = new();
+                foreach (var pair in dictionary)
+                {
+                    if (pair.Value == uk) continue;
+                    temp.Add(pair.Key, pair.Value);
+                }
+                dictionary = temp;
+                Console.WriteLine("Вилучено успішно");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Виникла помилка: " + ex.Message);
+            }
+        }
+
+
 
         private void Uk2En()
         {

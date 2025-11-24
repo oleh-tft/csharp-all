@@ -12,63 +12,122 @@ namespace csharp_all.Data
     {
         public void Run()
         {
-            String connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\Адмін\source\repos\csharp-all\Database1.mdf;Integrated Security=True";
-            SqlConnection connection = new(connectionString);
+            DataAccessor dataAccessor = new();
+            dataAccessor.MonthlySalesByManagersSql(month: 10);
+            Helper.SpecialOperator();
+            dataAccessor.MonthlySalesByManagersOrm(month: 10).ForEach(Console.WriteLine);
+            //Console.WriteLine(dataAccessor.RandomProduct());
+            //Console.WriteLine(dataAccessor.RandomDepartment());
+            //Console.WriteLine(dataAccessor.RandomManager());
+            //Helper.SpecialOperator();
+            //dataAccessor.GetProducts().ForEach(Console.WriteLine);
+            
+            //Console.Write("Порівняти кількість продажів за місяць (1-12): ");
+            //String? inputMonth = Console.ReadLine();
+            //if (int.TryParse(inputMonth, out int valueMonth))
+            //{
+            //    try
+            //    {
+            //        var count = dataAccessor.GetSalesInfoByMonth(valueMonth);
+            //        Console.WriteLine("2025:\t2024:\n");
+            //        Console.WriteLine("{0}\t{1}", count.Item1, count.Item2);
+            //    }
+            //    catch
+            //    {
+            //        Console.WriteLine("Введене значення не було оброблене");
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Введене значення не розпізнано як число");
+            //}
 
-            try
-            {
-                connection.Open();
-            }
-            catch (SqlException ex)
-            {
-                Console.WriteLine("Connection failed: {0}", ex.Message);
-                return;
-            }
-            DataAccessor dataAccessor = new(connection);
-            //dataAccessor.Install();
-            //dataAccessor.Seed();
+            //Console.Write("Кількість продажів за рік: ");
+            //String? inputYear = Console.ReadLine();
+            //if (int.TryParse(inputYear, out int valueYear))
+            //{
+            //    try
+            //    {
+            //        List<int> sales = dataAccessor.GetMonthlySalesByYear(valueYear);
+            //        for (int i = 0; i < 12; i++)
+            //        {
+            //            Console.WriteLine("{0} -- {1}", i + 1, sales[i]);
+            //        }
+            //        dataAccessor.GetMonthlySalesByYear(valueYear);
+            //    }
+            //    catch
+            //    {
+            //        Console.WriteLine("Введене значення не було оброблене");
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Введене значення не розпізнано як число");
+            //}
 
-            List<Product> products = dataAccessor.GetProducts(); 
+            //Console.Write("Кількість продажів за місяць (1-12): ");
+            //String? input = Console.ReadLine();
+            //if(int.TryParse(input, out int value))
+            //{
+            //    try
+            //    {
+            //        Console.WriteLine(dataAccessor.GetSalesCountByMonth(value));
+            //    }
+            //    catch
+            //    {
+            //        Console.WriteLine("Введене значення не було оброблене");
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Введене значення не розпізнано як число");
+            //}
 
-            products.ForEach(Console.WriteLine);
+            ////dataAccessor.Install();
+            ////dataAccessor.Seed();
+            ////dataAccessor.FillSales();
 
-            Helper.SpecialOperator("==============================");
-            foreach (var item in products)
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============За зростанням=================");
-            foreach (var item in products.OrderBy(p => p.Price))
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============За спаданням=================");
-            foreach (var item in products.OrderByDescending(p => p.Price))
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============За абеткою=================");
-            foreach (var item in products.OrderBy(p => p.Name)) 
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============3 найдорожчі товари=================");
-            foreach (var item in products.OrderByDescending(p => p.Price).Take(3))
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============3 найдешевші товари=================");
-            foreach (var item in products.OrderBy(p => p.Price).Take(3))
-            {
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
-            Helper.SpecialOperator("=============3 випадкові товари=================");
-            for (int i = 0; i < 3; i++)
-            {
-                Random rand = new();
-                Product item = products[rand.Next(products.Count - 1)];
-                Console.WriteLine("{0} -- {1}", item.Name, item.Price);
-            }
+            //List<Product> products = dataAccessor.GetProducts(); 
+
+            //products.ForEach(Console.WriteLine);
+
+            //Helper.SpecialOperator("==============================");
+            //foreach (var item in products)
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============За зростанням=================");
+            //foreach (var item in products.OrderBy(p => p.Price))
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============За спаданням=================");
+            //foreach (var item in products.OrderByDescending(p => p.Price))
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============За абеткою=================");
+            //foreach (var item in products.OrderBy(p => p.Name)) 
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============3 найдорожчі товари=================");
+            //foreach (var item in products.OrderByDescending(p => p.Price).Take(3))
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============3 найдешевші товари=================");
+            //foreach (var item in products.OrderBy(p => p.Price).Take(3))
+            //{
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
+            //Helper.SpecialOperator("=============3 випадкові товари=================");
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    Random rand = new();
+            //    Product item = products[rand.Next(products.Count - 1)];
+            //    Console.WriteLine("{0} -- {1}", item.Name, item.Price);
+            //}
         }
 
         public void Run1()
