@@ -1,18 +1,29 @@
-﻿using csharp_all.Data.Dto;
-using csharp_all.Data.Dto.Models;
+﻿using csharp_all.Data.Attributes;
+using csharp_all.Data.Dto;
+using csharp_all.Data.Models;
+using csharp_all.Library;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace csharp_all.Data
 {
+    public enum CompareMode
+    {
+        ByChecks,
+        ByQuantity,
+        ByMoney
+    }
+
     internal class DataAccessor
     {
-        private readonly SqlConnection connection;
+        public SqlConnection connection { get; private set; }
 
         public DataAccessor()
         {
@@ -30,6 +41,66 @@ namespace csharp_all.Data
             }
         }
 
+        public IEnumerable<ProdSaleModel> Top3DailyProducts(CompareMode compareMode)
+        {
+            String sql = "";
+            if (compareMode == CompareMode.ByQuantity)
+            {
+                sql = @$"
+                    SELECT TOP 3
+	                    MAX(P.Name) AS [{nameof(ProdSaleModel.Product.Name)}],
+	                    SUM(S.Quantity) AS [{nameof(ProdSaleModel.Quantity)}],
+	                    SUM(P.Price) AS [{nameof(ProdSaleModel.Money)}],
+	                    COUNT(S.Id) AS [{nameof(ProdSaleModel.Checks)}]
+                    FROM
+	                    Sales S
+	                    JOIN Products P ON S.ProductId = P.Id
+                    WHERE
+	                    Moment BETWEEN @date AND DATEADD(MONTH, 1, @date)
+                    GROUP BY
+	                    P.Id
+                    ORDER BY
+	                    2 DESC";
+            } 
+            else if (compareMode == CompareMode.ByMoney)
+            {
+                sql = @$"
+                    SELECT TOP 3
+	                    MAX(P.Name) AS [{nameof(ProdSaleModel.Product.Name)}],
+	                    SUM(S.Quantity) AS [{nameof(ProdSaleModel.Quantity)}],
+	                    SUM(P.Price) AS [{nameof(ProdSaleModel.Money)}],
+	                    COUNT(S.Id) AS [{nameof(ProdSaleModel.Checks)}]
+                    FROM
+	                    Sales S
+	                    JOIN Products P ON S.ProductId = P.Id
+                    WHERE
+	                    Moment BETWEEN @date AND DATEADD(MONTH, 1, @date)
+                    GROUP BY
+	                    P.Id
+                    ORDER BY
+	                    3 DESC";
+            }
+            else if (compareMode == CompareMode.ByChecks)
+            {
+                sql = @$"
+                    SELECT TOP 3
+	                    MAX(P.Name) AS [{nameof(ProdSaleModel.Product.Name)}],
+	                    SUM(S.Quantity) AS [{nameof(ProdSaleModel.Quantity)}],
+	                    SUM(P.Price) AS [{nameof(ProdSaleModel.Money)}],
+	                    COUNT(S.Id) AS [{nameof(ProdSaleModel.Checks)}]
+                    FROM
+	                    Sales S
+	                    JOIN Products P ON S.ProductId = P.Id
+                    WHERE
+	                    Moment BETWEEN @date AND DATEADD(MONTH, 1, @date)
+                    GROUP BY
+	                    P.Id
+                    ORDER BY
+	                    4 DESC";
+            }
+            return ExecuteList<ProdSaleModel>(sql, new() { ["@date"] = DateTime.Now });
+        }
+
         public T FromReader<T>(SqlDataReader reader)
         {
             var t = typeof(T);
@@ -39,14 +110,21 @@ namespace csharp_all.Data
             {
                 try
                 {
-                    Object data = reader.GetValue(prop.Name);
-                    if (data.GetType() == typeof(decimal))
+                    if (prop.Name == "Product")
                     {
-                        prop.SetValue(res, Convert.ToDouble(data));
+                        prop.SetValue(res, FromReader<Product>(reader));
                     }
                     else
                     {
-                        prop.SetValue(res, data);
+                        Object data = reader.GetValue(prop.Name);
+                        if (data.GetType() == typeof(decimal))
+                        {
+                            prop.SetValue(res, Convert.ToDouble(data));
+                        }
+                        else
+                        {
+                            prop.SetValue(res, data);
+                        }
                     }
                 }
                 catch { }
@@ -72,21 +150,6 @@ namespace csharp_all.Data
                 throw;
             }
         }
-
-
-        public Product RandomProduct()
-        {
-            return ExecuteScalar<Product>("SELECT TOP 1 * FROM Products ORDER BY NEWID()");
-        }
-        public Department RandomDepartment()
-        {
-            return ExecuteScalar<Department>("SELECT TOP 1 * FROM Departments ORDER BY NEWID()");
-        }
-        public Manager RandomManager()
-        {
-            return ExecuteScalar<Manager>("SELECT TOP 1 * FROM Managers ORDER BY NEWID()");
-        }
-
         public List<T> ExecuteList<T>(String sql, Dictionary<String, Object>? sqlParams = null)
         {
             List<T> res = [];
@@ -110,9 +173,157 @@ namespace csharp_all.Data
             }
             return res;
         }
+
+        public Product RandomProduct()
+        {
+            return ExecuteScalar<Product>("SELECT TOP 1 * FROM Products ORDER BY NEWID()");
+        }
+        public Department RandomDepartment()
+        {
+            return ExecuteScalar<Department>("SELECT TOP 1 * FROM Departments ORDER BY NEWID()");
+        }
+        public Manager RandomManager()
+        {
+            return ExecuteScalar<Manager>("SELECT TOP 1 * FROM Managers ORDER BY NEWID()");
+        }
+
         public List<Product> GetProducts()
         {
             return ExecuteList<Product>("SELECT * FROM Products");
+        }
+        public List<Department> GetDepartments()
+        {
+            return ExecuteList<Department>("SELECT * FROM Departments");
+        }
+        public List<Manager> GetManagers()
+        {
+            return ExecuteList<Manager>("SELECT * FROM Managers");
+        }
+        public List<News> GetNews()
+        {
+            return ExecuteList<News>("SELECT * FROM News");
+        }
+        public List<T> GetAll<T>()
+        {
+            var t = typeof(T);
+            var attr = t.GetCustomAttribute<TableNameAttribute>();
+            String tableName = attr?.Value ?? t.Name + "s";
+            return ExecuteList<T>($"SELECT * FROM {tableName}");
+        }
+
+        public IEnumerable<Department> EnumDepartments()
+        {
+            String sql = "SELECT * FROM Departments";
+            using SqlCommand cmd = new(sql, connection);
+            SqlDataReader? reader;
+            try
+            {
+                reader = cmd.ExecuteReader();   // без зворотнього результату
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+                throw;
+            }
+            while (reader.Read())
+            {
+                yield return FromReader<Department>(reader);
+            }
+            reader.Dispose();
+        }
+        public IEnumerable<Manager> EnumManagers()
+        {
+            String sql = "SELECT * FROM Managers";
+            using SqlCommand cmd = new(sql, connection);
+            SqlDataReader? reader;
+            try
+            {
+                reader = cmd.ExecuteReader();   // без зворотнього результату
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+                throw;
+            }
+            while (reader.Read())
+            {
+                yield return FromReader<Manager>(reader);
+            }
+            reader.Dispose();
+        }
+        public IEnumerable<Product> EnumProducts()
+        {
+            String sql = "SELECT * FROM Products";
+            using SqlCommand cmd = new(sql, connection);
+            SqlDataReader? reader;
+            try
+            {
+                reader = cmd.ExecuteReader();   // без зворотнього результату
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+                throw;
+            }
+            while (reader.Read())
+            {
+                yield return FromReader<Product>(reader);
+            }
+            reader.Dispose();
+        }
+        public IEnumerable<Sale> EnumSales(int limit = 100)
+        {
+            String sql = "SELECT * FROM Sales";
+            using SqlCommand cmd = new(sql, connection);
+            SqlDataReader? reader;
+            try
+            {
+                reader = cmd.ExecuteReader();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+                throw;
+            }
+            try
+            {
+                while (reader.Read())
+                {
+                    yield return FromReader<Sale>(reader);
+                    limit -= 1;
+                    if (limit == 0)
+                    {
+                        yield break;
+                    }
+                }
+            }
+            finally
+            {
+                reader.Dispose();
+            }
+        }
+        public IEnumerable<T> EnumAll<T>()
+        {
+            var t = typeof(T);
+            var attr = t.GetCustomAttribute<TableNameAttribute>();
+            String tableName = attr?.Value ?? t.Name + "s";
+            String sql = $"SELECT * FROM {tableName}";
+            using SqlCommand cmd = new(sql, connection);
+            SqlDataReader? reader;
+            try
+            {
+                reader = cmd.ExecuteReader();   // без зворотнього результату
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+                throw;
+            }
+            while (reader.Read())
+            {
+                yield return FromReader<T>(reader);
+            }
+            reader.Dispose();
         }
 
         public void Install()
@@ -121,6 +332,8 @@ namespace csharp_all.Data
             InstallDepartments();
             InstallManagers();
             InstallSales();
+            InstallNews();
+            InstallAccesses();
         }
         private void InstallSales()
         {
@@ -188,14 +401,52 @@ namespace csharp_all.Data
                 Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
             }
         }
+        private void InstallNews()
+        {
+            String sql = "CREATE TABLE News(" +
+                "Id    UNIQUEIDENTIFIER PRIMARY KEY," +
+                "AuthorId    UNIQUEIDENTIFIER NOT NULL," +
+                "Title  NVARCHAR(256)     NOT NULL," +
+                "Content NVARCHAR(MAX)    NOT NULL," +
+                "Moment DATETIME2    NOT NULL DEFAULT CURRENT_TIMESTAMP)";
+            using SqlCommand cmd = new(sql, connection);
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+            }
+        }
+        private void InstallAccesses()
+        {
+            String sql = "CREATE TABLE Access(" +
+                "Id    UNIQUEIDENTIFIER PRIMARY KEY," +
+                "ManagerId    UNIQUEIDENTIFIER NOT NULL," +
+                "Login  VARCHAR(32)     NOT NULL," +
+                "Salt  CHAR(16)     NOT NULL," +
+                "Dk CHAR(32)    NOT NULL)";
+            using SqlCommand cmd = new(sql, connection);
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+            }
+        }
 
         public void Seed()
         {
             SeedProducts();
             SeedDepartments();
             SeedManagers();
+            SeedNews();
+            SeedAccesses();
         }
-        public void SeedProducts()
+        private void SeedProducts()
         {
             String sql = "INSERT INTO Products VALUES" +
                 "('A743DFDB-A31D-4FC5-97BA-68B2231BB58A', N'Samsung Galaxy S24 Ultra', 200000.00), " +
@@ -227,7 +478,7 @@ namespace csharp_all.Data
                 return;
             }
         }
-        public void SeedManagers()
+        private void SeedManagers()
         {
             String sql = "INSERT INTO Managers VALUES" +
                 "('1A391E34-B922-45FD-A4AD-45595F7F2B49', 'C7727779-9EE3-4127-988E-F7E93A780204', N'Олександр Ковальчу', '2020-06-01')," +
@@ -268,7 +519,7 @@ namespace csharp_all.Data
                 Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
             }
         }
-        public void SeedDepartments()
+        private void SeedDepartments()
         {
             String sql = "INSERT INTO Departments VALUES" +
                 "('C7727779-9EE3-4127-988E-F7E93A780204', N'Відділ маркетингу')," +
@@ -276,6 +527,39 @@ namespace csharp_all.Data
                 "('8C51535C-26E3-4B8A-9F7C-7D669C4672AE', N'Відділ продажів')," +
                 "('B4C174CC-8C18-46DF-B8B4-F9E6F51EDCEA', N'ІТ відділ')," +
                 "('B471180C-B4C0-4DF3-9290-D7DE881C94C7', N'Служба безпеки')";
+            using SqlCommand cmd = new(sql, connection);
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+            }
+        }
+        private void SeedNews()
+        {
+            String sql = "INSERT INTO News VALUES" +
+                "('1FA571EE-7C03-4484-85AC-03D9C4043C13', '3DE2104C-7467-4D4E-955B-C77E2F22ABDB', N'Живі організми здатні виживати у відкритому космосі', N'Космічний вакуум вважається найгіршим можливим середовищем для живих організмів, де вижити просто неможливо. Але новий експеримент, результати якого опубліковані в журналі iScience, поставив цю думку під великий сумнів.\r\n\r\nГрупа науковців з університету Хоккайдо (Японія) під керівництвом Томоміті Фудзіти розмістила спори моху на зовнішній частині Міжнародної космічної станції. Там вони перебували кілька місяців без жодного захисту. Весь цей час на них впливали вакуум, ультрафіолетове випромінювання та різкі перепади температур — від значних мінусів до спеки.', '2025-11-20')," +
+                "('7A785E4F-C070-4EF2-90A4-491D3873E9E8', '02457ED1-7331-46B7-833A-C5CA1D51688D', N'Власник ноутбука від Lenovo пообіцяв $2 тисячі тому, хто полагодить пристрій', N'Користувач nadimkobeissi оголосив \"полювання на баг\" у його ноутбуці Lenovo Legion Pro 7 і пообіцяв 500 доларів тому, хто полагодить плоский і глухий звук пристрою. Незабаром до ініціативи долучилися ще пятеро людей, і загальна сума винагороди досягла 2000 доларів.\r\n\r\nПроблема полягала в неправильному визначенні Linux аудіокодека Realtek ALC3306 і некоректній інтеграції між кодеком і підсилювачами в ноутбуці. Це спричиняло низьку якість звуку, незважаючи на наявність у системі твітерів і вуферів.\r\n\r\nВиправлення було знайдено приблизно за місяць. Воно працює на ядрі Linux 6.17.8, і Кобеіссі обіцяє підтримувати інструкцію до повної інтеграції фікса в основне ядро. Після встановлення звук функціонує коректно і залишається стабільним після перезавантаження. Сам фікс лежить на GitHub.', '2025-11-22')," +
+                "('95E7A53C-E90B-4119-A258-71CA078AA375', '124BE452-1FE4-40BA-B435-ECE466C7949B', N'Ця рослина вижила після девяти місяців перебування у космічному вакуумі', N'Обєктом дослідження став вид Physcomitrium patens, відомий як розгалужений земний мох. У науковому світі ці рослини часто порівнюють із тихоходами – мікроскопічними тваринами, що відомі своєю невразливістю до екстремальних факторів.\r\n\r\nКоманда вчених під керівництвом Томомічі Фуджити з Університету Хоккайдо закріпила капсули зі спорами моху на зовнішній поверхні МКС. Протягом девяти місяців зразки перебували під впливом космічного вакууму, відчуваючи на собі різкі перепади температур та інтенсивне ультрафіолетове випромінювання, згубне для людей.', '2025-11-24')";
+            using SqlCommand cmd = new(sql, connection);
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Command failed: {0}\n{1}", ex.Message, sql);
+            }
+        }
+        private void SeedAccesses()
+        {
+            String sql = "INSERT INTO Access VALUES" +
+                "('40C99C52-E8D8-42BF-AAF4-B06A193EA53D', '3DE2104C-7467-4D4E-955B-C77E2F22ABDB', 'manager1', 'p7Q2fA9mK1tR0xWd', 'd8f1a2c9e4b7f0d3c6a5e8b1c2f9d4a7')," +
+                "('C1CDAF2E-6013-485F-B4F4-4D0A154F5415', '02457ED1-7331-46B7-833A-C5CA1D51688D', 'super_manager', 'Zb4uL9qH2yE7sV0n', 'a3c7e1b9f4d2a8c6e0f5b3d7a1c9e4f2')," +
+                "('58E2A90B-9DD9-4CDF-B0CB-F837FBD83CA5', '124BE452-1FE4-40BA-B435-ECE466C7949B', 'bad_manager', 'tF3kR8wN6jB1cP5q', 'f9b2d1e7a4c3f8d0b5e6a9c2d7f1a4e8')," +
+                "('68047CB6-9566-49A2-9631-D28F265287E6', 'CB1B6913-64AD-4F7A-88FB-4716F7214538', 'manager1990', 'mX7sD2vQ4hT9gL1u', 'c4e9a1f6d3b8e0c7a5f2d9b1e6c3a7f4')";
             using SqlCommand cmd = new(sql, connection);
             try
             {
@@ -326,7 +610,22 @@ namespace csharp_all.Data
                         ORDER BY
 	                        2 DESC",new() {["@date"] = new DateTime(year, month , 1) });
         }
-
+        public List<ProdSaleModel> MonthlySalesByProductsOrm(int month, int year = 2025)
+        {
+            return ExecuteList<ProdSaleModel>(@$"
+                        SELECT
+	                        MAX(P.Name) AS [{nameof(ProdSaleModel.Product.Name)}],
+	                        COUNT(S.Id) AS [{nameof(ProdSaleModel.Quantity)}]
+                        FROM
+	                        Sales S
+	                        JOIN Products P ON S.ProductId = P.Id
+                        WHERE
+	                        Moment BETWEEN @date AND DATEADD(MONTH, 1, @date)
+                        GROUP BY
+	                        P.Id
+                        ORDER BY
+	                        2 DESC", new() { ["@date"] = new DateTime(year, month, 1) });
+        }
         public void MonthlySalesByManagersSql(int month, int year = 2025)
         {
             String sql = @"

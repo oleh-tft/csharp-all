@@ -8,12 +8,12 @@ namespace csharp_all
 {
     internal class Helper
     {
-        public static void SpecialOperator(String text)
+        public static void SpecialOperator(Object text)
         {
             Array values = Enum.GetValues(typeof(ConsoleColor));
             Random random = new();
             Console.ForegroundColor = (ConsoleColor)values.GetValue(random.Next(values.Length-1) + 1);
-            Console.WriteLine(text);
+            Console.WriteLine(text.ToString());
             Console.ForegroundColor = ConsoleColor.Gray;
         }
 

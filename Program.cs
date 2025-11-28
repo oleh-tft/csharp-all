@@ -25,7 +25,7 @@ try
     //new NotifierDemo().Run();
     //new CollectionsDemo().Run();
     //new DictDemo().Run();
-    //new DataDemo().Run();
+    new DataDemo().Run();
 }
 catch (Exception ex)
 {

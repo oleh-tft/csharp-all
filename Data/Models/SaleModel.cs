@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace csharp_all.Data.Dto.Models
+namespace csharp_all.Data.Models
 {
     internal class SaleModel
     {

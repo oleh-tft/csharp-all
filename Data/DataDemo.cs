@@ -1,5 +1,7 @@
 ﻿using csharp_all.Data.Dto;
+using csharp_all.Data.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +15,140 @@ namespace csharp_all.Data
         public void Run()
         {
             DataAccessor dataAccessor = new();
+
+            Helper.SpecialOperator("===========ByMoney============");
+            foreach (var m in dataAccessor.Top3DailyProducts(CompareMode.ByMoney))
+            {
+                Console.WriteLine(m);
+            }
+            Helper.SpecialOperator("===========ByChecks============");
+            foreach (var m in dataAccessor.Top3DailyProducts(CompareMode.ByChecks))
+            {
+                Console.WriteLine(m);
+            }
+            Helper.SpecialOperator("===========ByQuantity============");
+            foreach (var m in dataAccessor.Top3DailyProducts(CompareMode.ByQuantity))
+            {
+                Console.WriteLine(m);
+            }
+        }
+        public void Run5()
+        {
+            DataAccessor dataAccessor = new();
+            foreach (var dep in dataAccessor.EnumAll<Department>())
+            {
+                Console.WriteLine(dep);
+                //String sql = $"SELECT * FROM Managers M WHERE M.DepartmentId = '{dep.Id}'";
+                //using SqlCommand cmd = new(sql, dataAccessor.connection);
+                //using SqlDataReader reader = cmd.ExecuteReader();
+                //while (reader.Read())
+                //{
+                //    Console.WriteLine(dataAccessor.FromReader<Manager>(reader));
+                //}
+            }
+            Console.WriteLine("========================");
+            foreach (var prod in dataAccessor.EnumAll<Product>())
+            {
+                Console.WriteLine(prod);
+            }
+            Console.WriteLine("========================");
+            foreach (var prod in dataAccessor.EnumAll<News>())
+            {
+                Console.WriteLine(prod);
+            }
+        }
+
+        public void Run4()
+        {
+            DataAccessor dataAccessor = new();
+            List<Department> departments = dataAccessor.GetAll<Department>();
+            List<Manager> managers = dataAccessor.GetAll<Manager>();
+            List<Access> accesses = dataAccessor.GetAll<Access>();
+
+            foreach (var name in departments.Select(d => d.Name))
+            {
+                Console.WriteLine(name);
+            }
+            Helper.SpecialOperator();
+            var query1 = managers
+                .Join(
+                    departments,
+                    m => m.DepartmentId,
+                    d => d.Id,
+                    (m, d) => new
+                    {
+                        Department = d,
+                        Manager = m
+                    }
+                );
+            foreach (var item in query1)
+            {
+                Console.WriteLine($"{item.Manager.Name} -- {item.Department.Name}");
+            }
+            Helper.SpecialOperator();
+            Console.WriteLine(
+                String.Join("\n", 
+                departments
+                .GroupJoin(
+                    managers,
+                    d => d.Id,
+                    m => m.DepartmentId,
+                    (d, m) => new
+                    {
+                        d.Name,
+                        Count = m.Count(),
+                        Managers = String.Join(", ", m.Select(m => m.Name))
+                    }
+                )
+                .OrderByDescending(item => item.Count)
+                .Select(item => String.Format("{0} ({1} empl): {2}", item.Name, item.Count, item.Managers))
+                ));
+
+            var query = accesses
+                    .Join(
+                        managers,
+                        a => a.ManagerId,
+                        m => m.Id,
+                        (a, m) => new
+                        {
+                            Access = a,
+                            Manager = m
+                        }
+                    );
+
+            foreach (var item in query)
+            {
+                Console.WriteLine("{0} - {1}", item.Manager.Name, item.Access.Login);
+            }
+        }
+
+        public void Run3()
+        {
+            DataAccessor dataAccessor = new();
+
+            dataAccessor.GetAll<Product>().ForEach(Console.WriteLine);
+            Helper.SpecialOperator();
+            dataAccessor.GetAll<Department>().ForEach(Console.WriteLine);
+            Helper.SpecialOperator();
+            dataAccessor.GetAll<Manager>().ForEach(Console.WriteLine);
+            Helper.SpecialOperator();
+            dataAccessor.GetAll<News>().ForEach(Console.WriteLine);
+        }
+
+        public void Run2()
+        {
+            DataAccessor dataAccessor = new();
             dataAccessor.MonthlySalesByManagersSql(month: 10);
             Helper.SpecialOperator();
             dataAccessor.MonthlySalesByManagersOrm(month: 10).ForEach(Console.WriteLine);
+            Helper.SpecialOperator();
+            dataAccessor.MonthlySalesByProductsOrm(month: 5).ForEach(Console.WriteLine);
             //Console.WriteLine(dataAccessor.RandomProduct());
             //Console.WriteLine(dataAccessor.RandomDepartment());
             //Console.WriteLine(dataAccessor.RandomManager());
             //Helper.SpecialOperator();
             //dataAccessor.GetProducts().ForEach(Console.WriteLine);
-            
+
             //Console.Write("Порівняти кількість продажів за місяць (1-12): ");
             //String? inputMonth = Console.ReadLine();
             //if (int.TryParse(inputMonth, out int valueMonth))

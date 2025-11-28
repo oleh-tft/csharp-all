@@ -16,7 +16,7 @@ namespace csharp_all.Data.Dto
         public override string? ToString()
         {
             String id = Id.ToString();
-            return $"{id[..3]}...{id[^3..]} {Name} - Works from {WorksFrom}";
+            return $"{id[..3]}...{id[^3..]} {Name} - Works from {WorksFrom.ToShortDateString()}";
         }
     }
 }
