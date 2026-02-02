@@ -1,4 +1,5 @@
-﻿using csharp_all.Collect;
+﻿using csharp_all.AsyncProgramming;
+using csharp_all.Collect;
 using csharp_all.Data;
 using csharp_all.Dict;
 using csharp_all.Events;
@@ -25,7 +26,8 @@ try
     //new NotifierDemo().Run();
     //new CollectionsDemo().Run();
     //new DictDemo().Run();
-    new DataDemo().Run();
+    //new DataDemo().Run();
+    new AsyncProgramming().Run();
 }
 catch (Exception ex)
 {
