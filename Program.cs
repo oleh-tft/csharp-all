@@ -33,6 +33,7 @@ catch (Exception ex)
 {
     Console.WriteLine("Не оброблений у програмі виняток: " + ex.ToString());
 }
+Console.WriteLine("Main finished");
 
 void ShowReflection()
 {
