@@ -23,6 +23,7 @@ namespace csharp_all.AsyncProgramming
                 Console.WriteLine("3. Process with params");
                 Console.WriteLine("4. Thread demo");
                 Console.WriteLine("5. Multi Thread demo (percent)");
+                Console.WriteLine("6. Multi Thread Array");
                 Console.WriteLine("0. Exit program");
                 keyInfo = Console.ReadKey();
                 Console.WriteLine();
@@ -34,9 +35,67 @@ namespace csharp_all.AsyncProgramming
                     case '3': ProcessWithParam(); break;
                     case '4': ThreadsDemo(); break;
                     case '5': MultiThread(); break;
+                    case '6': MultiThreadArray(); break;
                     default: Console.WriteLine("Wrong choice"); break;
                 }
             } while (true);
+        }
+
+        private int threadCntArr;
+        private int[] randomArr;
+        private readonly Object cntArrLocker = new();
+
+        private void MultiThreadArray()
+        {
+            Console.Write("Введіть кількість елементів для генерування: ");
+            int amount = int.Parse(Console.ReadLine()!);
+            randomArr = Array.Empty<int>();
+            threadCntArr = amount;
+            for (int i = 0; i < amount; i++)
+            {
+                new Thread(AppendArray).Start(i);
+            }
+        }
+
+        private void AppendArray(Object? element)
+        {
+            int m = (int)element!;
+            Console.WriteLine($"Request sent for element {m}");
+            Thread.Sleep(1000);
+            Random random = new();
+            int generated = random.Next(100);
+            lock (randomArr)
+            {
+                randomArr = randomArr.Append(generated).ToArray();
+
+                Console.Write("[");
+                for (int i = 0; i < randomArr.Length; i++)
+                {
+                    Console.Write(i == randomArr.Length - 1 ? randomArr[i] : randomArr[i] + ", ");
+                }
+                    
+                Console.WriteLine("]");
+            }
+
+            bool isCnt0 = false;
+            lock (cntArrLocker)
+            {
+                threadCntArr -= 1;
+                if (threadCntArr == 0)
+                {
+                    isCnt0 = true;
+                }
+            }
+            if (isCnt0)
+            {
+                Console.Write("Результат: [");
+                for (int i = 0; i < randomArr.Length; i++)
+                {
+                    Console.Write(i == randomArr.Length - 1 ? randomArr[i] : randomArr[i] + ", ");
+                }
+
+                Console.WriteLine("]");
+            }
         }
 
         private void MultiThread()
@@ -48,7 +107,6 @@ namespace csharp_all.AsyncProgramming
                 new Thread(CalcMonth).Start(i + 1);
             }
         }
-
 
         private void CalcMonth3(Object? month)
         {
