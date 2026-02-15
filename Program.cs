@@ -12,6 +12,7 @@ using csharp_all.Library;
 using csharp_all.Vectors;
 using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 Console.OutputEncoding = System.Text.Encoding.Unicode;
 Console.InputEncoding = System.Text.Encoding.Unicode;
@@ -27,7 +28,19 @@ try
     //new CollectionsDemo().Run();
     //new DictDemo().Run();
     //new DataDemo().Run();
-    new AsyncProgramming().Run();
+    //new AsyncProgramming().Run();
+    //new Threading().Run();
+    //var t = new ThreadPooling();
+    //var t = new ThreadJoin();
+    //var h = GCHandle.Alloc(t, GCHandleType.Pinned);
+    //t.Run();
+    //h.Free();
+    //new ThreadJoin().Run();
+    //new ThreadPooling().Run();
+
+    //new TaskDemo().Run();
+    //new AsyncDemo().Run();
+    new Continuations().Run();
 }
 catch (Exception ex)
 {
