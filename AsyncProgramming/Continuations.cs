@@ -18,6 +18,9 @@ namespace csharp_all.AsyncProgramming
                 .ContinueWith(t => Spacefy(t.Result))
                 .ContinueWith(t => Capitalize(t.Result))
                 .ContinueWith(t => Slugify(t.Result, "-"))
+                .ContinueWith(t => Invert(t.Result, "-"))
+                .ContinueWith(t => Ceasar(t.Result))
+                .ContinueWith(t => Hide(t.Result))
                 .Result);
         }
 
@@ -29,6 +32,47 @@ namespace csharp_all.AsyncProgramming
 
             Console.WriteLine("{1:F2} Chain1 res: {0}", chain1.Result, ((DateTime.Now.Ticks - startTicks) % (long)1e8) / 1e7);
             Console.WriteLine("{1:F2} Chain2 res: {0}", chain2.Result, ((DateTime.Now.Ticks - startTicks) % (long)1e8) / 1e7);
+        }
+
+        private String Hide(String str, char hidingSymbol = '*')
+        {
+            Task.Delay(1000).Wait();
+            string res = string.Join("-", str.Split('-').Select(word =>
+                    word.Length <= 3
+                        ? word
+                        : word[0] + new string(hidingSymbol, word.Length - 2) + word[^1]
+                )
+            );
+            Console.WriteLine($"Hide: '{str}' -> '{res}'");
+            return res;
+        }
+
+        private String Ceasar(String str)
+        {
+            Task.Delay(1000).Wait();
+            char[] arr = str.ToCharArray();
+
+            for (int i = 0; i < arr.Length; i++)
+            {
+                char c = arr[i];
+
+                if (c >= 'A' && c <= 'Z')
+                    arr[i] = (char)('A' + (c - 'A' + 3) % 26);
+                else if (c >= 'a' && c <= 'z')
+                    arr[i] = (char)('a' + (c - 'a' + 3) % 26);
+            }
+
+            string res = new string(arr);
+            Console.WriteLine($"Invert: '{str}' -> '{res}'");
+            return res;
+        }
+
+        private String Invert(String str, String glue = "-")
+        {
+            Task.Delay(1000).Wait();
+            String res = String.Join(glue, str.Split(glue).Select(s => new string(s.Reverse().ToArray())));
+            Console.WriteLine($"Invert: '{str}' -> '{res}'");
+            return res;
         }
 
         private String Slugify(String str, String glue="")
