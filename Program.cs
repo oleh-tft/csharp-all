@@ -9,6 +9,7 @@ using csharp_all.Extensions;
 using csharp_all.Files;
 using csharp_all.Fraction;
 using csharp_all.Library;
+using csharp_all.Networking;
 using csharp_all.Vectors;
 using System;
 using System.Reflection;
@@ -16,6 +17,7 @@ using System.Runtime.InteropServices;
 
 Console.OutputEncoding = System.Text.Encoding.Unicode;
 Console.InputEncoding = System.Text.Encoding.Unicode;
+//Console.ForegroundColor = ConsoleColor.DarkYellow;
 try
 {
     //new VectorDemo().Run();
@@ -40,7 +42,12 @@ try
 
     //new TaskDemo().Run();
     //new AsyncDemo().Run();
-    new Continuations().Run();
+    //new Continuations().Run();
+    //new NetworkingDemo().Run().Wait();
+    new NetworkingDemo().RunXml().Wait();
+
+
+    
 }
 catch (Exception ex)
 {
