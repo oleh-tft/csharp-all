@@ -16,6 +16,24 @@ namespace csharp_all.Networking
     {
         public async Task Run()
         {
+            Console.WriteLine("Робота з API");
+            MoonApi moonApi = new();
+
+            Console.Write("Введіть дату (дд.мм.рррр): ");
+            DateOnly date = DateOnly.Parse(Console.ReadLine()!);
+
+            MoonPhase datePhase = moonApi.PhaseByDate(date).Result;
+            Console.WriteLine("{0} {1} {2}", datePhase.PhaseName, datePhase.Lighting, datePhase.GetEmoji());
+
+            //for (int i = 1; i < 29; i++)
+            //{
+            //    MoonPhase phase = moonApi.PhaseByDate(new DateOnly(2026, 2, i)).Result;
+            //    Console.WriteLine("{2} {0} {1}", phase.PhaseName, phase.Lighting, phase.GetEmoji());
+            //}
+        }
+
+        public async Task RunXml()
+        {
             using HttpClient client = new();
             HttpRequestMessage request = new()
             {
@@ -51,7 +69,7 @@ namespace csharp_all.Networking
             Console.WriteLine(String.Join('\n', rates));
         }
 
-        public async Task RunXml()
+        public async Task RunXmlDate()
         {
             Console.WriteLine("Курси валют НБУ, робота з XML");
             Console.Write("Введіть дату (дд.мм.рррр): ");

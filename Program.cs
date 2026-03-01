@@ -10,6 +10,7 @@ using csharp_all.Files;
 using csharp_all.Fraction;
 using csharp_all.Library;
 using csharp_all.Networking;
+using csharp_all.Users;
 using csharp_all.Vectors;
 using System;
 using System.Reflection;
@@ -44,8 +45,8 @@ try
     //new AsyncDemo().Run();
     //new Continuations().Run();
     //new NetworkingDemo().Run().Wait();
-    new NetworkingDemo().RunXml().Wait();
-
+    //new EmailDemo().Run();
+    new UsersDemo().Run();
 
     
 }
